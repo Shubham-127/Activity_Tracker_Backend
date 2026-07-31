@@ -27,7 +27,7 @@ public class DeviceServiceImpl implements DeviceService {
     @Transactional
     public DeviceRegisterResponse register(DeviceRegisterRequest request) {
         InstallToken installToken = installTokenRepository
-                .findByTokenandUsedFalse(request.getInstallToken())
+                .findByTokenAndUsedFalse(request.getInstallToken())
                 .orElseThrow(() -> new IllegalStateException("Invalid or already-used install token"));
 
         if (installToken.getExpiresAt().isBefore(   Instant.now())) {

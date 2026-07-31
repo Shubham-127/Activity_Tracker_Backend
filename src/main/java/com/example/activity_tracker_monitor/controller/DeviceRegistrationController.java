@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/device")
+@RequestMapping("/api/v1/devices")
 @RequiredArgsConstructor
 public class DeviceRegistrationController {
     public final DeviceService deviceService;

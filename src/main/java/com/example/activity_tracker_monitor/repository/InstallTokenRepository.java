@@ -9,6 +9,6 @@ import java.util.Optional;
 
     public interface InstallTokenRepository extends JpaRepository<InstallToken, Long>{
 
-        Optional<InstallToken> findByTokenandUsedFalse(String token);
+        Optional<InstallToken> findByTokenAndUsedFalse(String token);
     }
 

@@ -22,6 +22,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/devices/register").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/v1/activity/**").hasRole("DEVICE_AGENT")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
