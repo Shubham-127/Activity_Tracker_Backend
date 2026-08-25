@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface ActivitySummaryRepository extends JpaRepository<ActivitySummary, Long> {
     List<ActivitySummary> findByEmployeeIdAndDateBetween(Long employeeId, LocalDate from, LocalDate to);
-    Optional<ActivitySummary> findByEmployeeIdAndDate(Long employeeId, LocalDate date);
+    Optional<ActivitySummary> findByEmployeeIdAndDateAndAppName(Long employeeId, LocalDate date, String appName);
 }
