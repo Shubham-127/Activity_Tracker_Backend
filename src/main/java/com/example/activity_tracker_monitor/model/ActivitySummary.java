@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Entity
 @Table(
         name = "activity_summary",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"employeeId", "date"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"employeeId", "date","appName"})
 )
 @Data
 public class ActivitySummary {
@@ -22,6 +22,9 @@ public class ActivitySummary {
 
     @Column(nullable = false)
     private LocalDate date;
+
+    @Column(nullable = false)
+    private String appName;
 
     @Column(nullable = false)
     private long totalActiveSeconds;
