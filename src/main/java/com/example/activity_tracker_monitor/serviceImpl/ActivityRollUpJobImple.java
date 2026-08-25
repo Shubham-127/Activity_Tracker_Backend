@@ -1,6 +1,5 @@
 package com.example.activity_tracker_monitor.serviceImpl;
 
-
 import com.example.activity_tracker_monitor.model.ActivityEvent;
 import com.example.activity_tracker_monitor.model.ActivitySummary;
 import com.example.activity_tracker_monitor.repository.ActivityEventRepository;
@@ -23,6 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ActivityRollUpJobImple {
+
+    private static final String IDLE_BUCKET = "Idle";
+
     private final ActivityEventRepository eventRepository;
     private final ActivitySummaryRepository summaryRepository;
 
@@ -33,48 +35,48 @@ public class ActivityRollUpJobImple {
         Instant windowEnd = Instant.now();
 
         List<ActivityEvent> events = eventRepository.findByStartedAtBetween(windowStart, windowEnd);
-
         if (events.isEmpty()) {
             return;
         }
+
         Map<String, List<ActivityEvent>> grouped = events.stream()
                 .collect(Collectors.groupingBy(this::groupKey));
 
         for (Map.Entry<String, List<ActivityEvent>> entry : grouped.entrySet()) {
-            String[] parts = entry.getKey().split("\\|");
+            String[] parts = entry.getKey().split("\\|", 3);
             Long employeeId = Long.parseLong(parts[0]);
             LocalDate date = LocalDate.parse(parts[1]);
+            String appName = parts[2];
 
-            long activeSeconds = entry.getValue().stream()
-                    .filter(e -> !e.isIdle())
+            long seconds = entry.getValue().stream()
                     .mapToLong(this::durationSeconds).sum();
 
-            long idleSeconds = entry.getValue().stream()
-                    .filter(ActivityEvent::isIdle)
-                    .mapToLong(this::durationSeconds).sum();
-
-            upsertSummary(employeeId, date, activeSeconds, idleSeconds);
+            boolean isIdleBucket = IDLE_BUCKET.equals(appName);
+            upsertSummary(employeeId, date, appName,
+                    isIdleBucket ? 0 : seconds,
+                    isIdleBucket ? seconds : 0);
         }
-        log.info("Rollup: processed {} events into {} summary buckets", events.size(), grouped.size());
 
+        log.info("Rollup: processed {} events into {} summary buckets", events.size(), grouped.size());
     }
 
     private String groupKey(ActivityEvent e) {
         LocalDate date = e.getStartedAt().atZone(ZoneOffset.UTC).toLocalDate();
-        return e.getEmployeeId() + "|" + date;
+        String bucket = e.isIdle() ? IDLE_BUCKET : e.getAppName();
+        return e.getEmployeeId() + "|" + date + "|" + bucket;
     }
 
     private long durationSeconds(ActivityEvent e) {
         return Duration.between(e.getStartedAt(), e.getEndedAt()).getSeconds();
     }
 
-
-    private void upsertSummary(Long employeeId, LocalDate date, long activeToAdd, long idleToAdd) {
-        ActivitySummary summary = summaryRepository.findByEmployeeIdAndDate(employeeId, date)
+    private void upsertSummary(Long employeeId, LocalDate date, String appName, long activeToAdd, long idleToAdd) {
+        ActivitySummary summary = summaryRepository.findByEmployeeIdAndDateAndAppName(employeeId, date, appName)
                 .orElseGet(() -> {
                     ActivitySummary s = new ActivitySummary();
                     s.setEmployeeId(employeeId);
                     s.setDate(date);
+                    s.setAppName(appName);
                     s.setTotalActiveSeconds(0);
                     s.setTotalIdleSeconds(0);
                     return s;
@@ -84,5 +86,4 @@ public class ActivityRollUpJobImple {
         summary.setTotalIdleSeconds(summary.getTotalIdleSeconds() + idleToAdd);
         summaryRepository.save(summary);
     }
-
 }
