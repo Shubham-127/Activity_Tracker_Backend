@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+
 @Component
 public class JwtUtil {
     private SecretKey Key(){
@@ -25,5 +26,17 @@ public class JwtUtil {
                 .signWith(Key())
                 .compact();
 
+    }
+    public String generateTestToken(Long employeeId, String role) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + JwtCredentials.EXPIRATION);
+        return Jwts.builder()
+                .subject(employeeId.toString())
+                .claim("employeeId", employeeId)
+                .claim("role", role)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(Key())
+                .compact();
     }
 }
