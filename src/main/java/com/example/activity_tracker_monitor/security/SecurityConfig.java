@@ -21,11 +21,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/devices/register").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/v1/test/**").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/activity/**").hasRole("DEVICE_AGENT")
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())
